@@ -54,8 +54,7 @@
 
         .game-board {
             width: 100%;
-            max-width: 400px;
-            height: 400px;
+            aspect-ratio: 1;
             background: #f5f5dc;
             border: 3px solid #333;
             border-radius: 10px;
@@ -68,7 +67,6 @@
                 radial-gradient(circle at 30% 20%, rgba(0,0,0,0.03) 0%, transparent 40%),
                 radial-gradient(circle at 70% 80%, rgba(0,0,0,0.02) 0%, transparent 35%);
             background-size: 20px 20px, 20px 20px, 100px 100px, 80px 80px;
-            margin: 0 auto;
         }
 
         .snake-segment {
@@ -78,57 +76,6 @@
             background: #2c3e50;
             border-radius: 3px;
             border: 1px solid #34495e;
-        }
-
-        .touch-controls {
-            display: none;
-            grid-template-columns: 1fr 1fr 1fr;
-            grid-template-rows: 1fr 1fr 1fr;
-            gap: 10px;
-            max-width: 200px;
-            margin: 20px auto;
-        }
-
-        .touch-button {
-            background: #3498db;
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-size: 24px;
-            font-weight: bold;
-            cursor: pointer;
-            user-select: none;
-            -webkit-user-select: none;
-            -webkit-tap-highlight-color: transparent;
-            min-height: 50px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: background 0.2s;
-        }
-
-        .touch-button:active {
-            background: #2980b9;
-        }
-
-        .touch-button.up {
-            grid-column: 2;
-            grid-row: 1;
-        }
-
-        .touch-button.down {
-            grid-column: 2;
-            grid-row: 3;
-        }
-
-        .touch-button.left {
-            grid-column: 1;
-            grid-row: 2;
-        }
-
-        .touch-button.right {
-            grid-column: 3;
-            grid-row: 2;
         }
 
         .snake-head {
@@ -290,22 +237,11 @@
             .game-container {
                 flex-direction: column;
                 align-items: center;
-                padding: 10px;
-            }
-            
-            .game-board {
-                max-width: 350px;
-                height: 350px;
             }
             
             .sidebar {
                 width: 100%;
                 max-width: 400px;
-                margin-top: 20px;
-            }
-
-            .touch-controls {
-                display: grid;
             }
 
             .footer {
@@ -313,42 +249,6 @@
                 text-align: center;
                 border-radius: 0;
                 margin-top: 20px;
-            }
-
-            .snake-segment {
-                width: 17.5px;
-                height: 17.5px;
-            }
-
-            .food {
-                width: 21px;
-                height: 21px;
-            }
-        }
-
-        @media (max-width: 480px) {
-            .game-board {
-                max-width: 300px;
-                height: 300px;
-            }
-
-            .snake-segment {
-                width: 15px;
-                height: 15px;
-            }
-
-            .food {
-                width: 18px;
-                height: 18px;
-            }
-
-            .touch-button {
-                min-height: 45px;
-                font-size: 20px;
-            }
-
-            .sidebar {
-                padding: 15px;
             }
         }
     </style>
@@ -360,12 +260,6 @@
                 <div class="game-status" id="gameStatus">
                     <button class="start-button" onclick="startGame()">Start Game</button>
                 </div>
-            </div>
-            <div class="touch-controls">
-                <button class="touch-button up" data-direction="up">↑</button>
-                <button class="touch-button left" data-direction="left">←</button>
-                <button class="touch-button right" data-direction="right">→</button>
-                <button class="touch-button down" data-direction="down">↓</button>
             </div>
         </div>
         
@@ -381,10 +275,10 @@
             
             <div class="instructions">
                 <h4>How to Play</h4>
-                <p>• Use arrow keys, WASD, or touch controls to move</p>
+                <p>• Use arrow keys or WASD to control the snake</p>
                 <p>• Eat the food to grow and score points</p>
                 <p>• Avoid hitting yourself or the walls</p>
-                <p>• Touch controls appear on mobile devices</p>
+
             </div>
             
             <div class="controls">
@@ -421,8 +315,8 @@
                 this.progressElement = document.getElementById('progressFill');
                 this.gameStatusElement = document.getElementById('gameStatus');
                 
-                this.boardSize = 20;
-                this.cellSize = this.calculateCellSize();
+                this.boardSize = 30;
+                this.cellSize = 20;
                 this.gameRunning = false;
                 this.score = 0;
                 this.gameSpeed = 185;
@@ -435,78 +329,42 @@
                 this.generateFood();
                 this.updateDisplay();
             }
-
-            calculateCellSize() {
-                const boardWidth = this.board.offsetWidth;
-                return Math.floor(boardWidth / this.boardSize);
-            }
             
             setupEventListeners() {
-                // Keyboard controls
                 document.addEventListener('keydown', (e) => {
                     if (!this.gameRunning) return;
-                    this.handleDirection(e.key);
-                });
-
-                // Touch controls
-                const touchButtons = document.querySelectorAll('.touch-button');
-                touchButtons.forEach(button => {
-                    button.addEventListener('click', (e) => {
-                        if (!this.gameRunning) return;
-                        const direction = e.target.getAttribute('data-direction');
-                        this.handleDirection(direction);
-                    });
-                });
-
-                // Prevent scrolling on touch devices
-                document.addEventListener('touchstart', (e) => {
-                    if (e.target.closest('.game-board') || e.target.closest('.touch-controls')) {
-                        e.preventDefault();
+                    
+                    switch(e.key) {
+                        case 'ArrowUp':
+                        case 'w':
+                        case 'W':
+                            if (this.direction.y === 0) {
+                                this.direction = {x: 0, y: -1};
+                            }
+                            break;
+                        case 'ArrowDown':
+                        case 's':
+                        case 'S':
+                            if (this.direction.y === 0) {
+                                this.direction = {x: 0, y: 1};
+                            }
+                            break;
+                        case 'ArrowLeft':
+                        case 'a':
+                        case 'A':
+                            if (this.direction.x === 0) {
+                                this.direction = {x: -1, y: 0};
+                            }
+                            break;
+                        case 'ArrowRight':
+                        case 'd':
+                        case 'D':
+                            if (this.direction.x === 0) {
+                                this.direction = {x: 1, y: 0};
+                            }
+                            break;
                     }
-                }, { passive: false });
-
-                document.addEventListener('touchmove', (e) => {
-                    if (e.target.closest('.game-board') || e.target.closest('.touch-controls')) {
-                        e.preventDefault();
-                    }
-                }, { passive: false });
-            }
-
-            handleDirection(key) {
-                switch(key) {
-                    case 'ArrowUp':
-                    case 'w':
-                    case 'W':
-                    case 'up':
-                        if (this.direction.y === 0) {
-                            this.direction = {x: 0, y: -1};
-                        }
-                        break;
-                    case 'ArrowDown':
-                    case 's':
-                    case 'S':
-                    case 'down':
-                        if (this.direction.y === 0) {
-                            this.direction = {x: 0, y: 1};
-                        }
-                        break;
-                    case 'ArrowLeft':
-                    case 'a':
-                    case 'A':
-                    case 'left':
-                        if (this.direction.x === 0) {
-                            this.direction = {x: -1, y: 0};
-                        }
-                        break;
-                    case 'ArrowRight':
-                    case 'd':
-                    case 'D':
-                    case 'right':
-                        if (this.direction.x === 0) {
-                            this.direction = {x: 1, y: 0};
-                        }
-                        break;
-                }
+                });
             }
             
             startGame() {
@@ -581,9 +439,6 @@
             }
             
             updateDisplay() {
-                // Recalculate cell size for responsive design
-                this.cellSize = this.calculateCellSize();
-                
                 this.clearBoard();
                 this.drawSnake();
                 this.drawFood();
@@ -641,22 +496,6 @@
         // Initialize game when page loads
         window.addEventListener('load', () => {
             game = new SnakeGame();
-        });
-
-        // Handle window resize and orientation changes
-        window.addEventListener('resize', () => {
-            if (game) {
-                game.updateDisplay();
-            }
-        });
-
-        // Handle orientation change on mobile
-        window.addEventListener('orientationchange', () => {
-            setTimeout(() => {
-                if (game) {
-                    game.updateDisplay();
-                }
-            }, 100);
         });
     </script>
 </body>
